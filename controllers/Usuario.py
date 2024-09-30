@@ -14,10 +14,9 @@ usuarios_schema = UsuarioSchema(many=True)
 # Validación de Username y Contrasenia
 @blp.route('/validate', methods=['POST'])
 def validar_usuario():
-    data = request.get_json()
-    username = data.get('Username')
-    contrasenia = data.get('Contrasenia')
-    
+    username = input("Ingrese su Username: ")  # Ingreso de teclado
+    contrasenia = input("Ingrese su Contrasenia: ")  # Ingreso de teclado
+
     if not username or not contrasenia:
         abort(400, message="Faltan parámetros de entrada")
 
