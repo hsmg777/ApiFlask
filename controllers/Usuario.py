@@ -4,6 +4,7 @@ from flask_smorest import Blueprint, abort
 from models.Usuario import Usuario
 from db import db
 from schemas.UsuarioSchema import UsuarioSchema
+from schemas.LoginSchema import LoginSchema
 from marshmallow import ValidationError
 
 blp = Blueprint("Usuario", __name__, url_prefix="/api/usuario", description="CRUD Usuario")
@@ -13,18 +14,21 @@ usuarios_schema = UsuarioSchema(many=True)
 
 # Validación de Username y Contrasenia
 @blp.route('/validate', methods=['POST'])
-def validar_usuario():
-    username = input("Ingrese su Username: ")  # Ingreso de teclado
-    contrasenia = input("Ingrese su Contrasenia: ")  # Ingreso de teclado
+@blp.arguments(LoginSchema)  # Cambiamos a LoginSchema para que solo tome username y contrasenia
+def validar_usuario(datos):
+    username = datos.get("username")
+    contrasenia = datos.get("contrasenia")
 
     if not username or not contrasenia:
         abort(400, message="Faltan parámetros de entrada")
 
-    if Usuario.validar_credenciales(username, contrasenia):
+    # Consulta para verificar si el usuario y la contraseña son válidos
+    usuario = Usuario.query.filter_by(Username=username, Contrasenia=contrasenia).first()
+
+    if usuario:
         return jsonify({"valid": True}), 200
     else:
         return jsonify({"valid": False}), 401
-
 # CRUD Usuario
 @blp.route('/')
 class UsuariosList(MethodView):
