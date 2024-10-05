@@ -14,7 +14,7 @@ usuarios_schema = UsuarioSchema(many=True)
 
 # Validación de Username y Contrasenia
 @blp.route('/validate', methods=['POST'])
-@blp.arguments(LoginSchema)  # Cambiamos a LoginSchema para que solo tome username y contrasenia
+@blp.arguments(LoginSchema)  
 def validar_usuario(datos):
     username = datos.get("username")
     contrasenia = datos.get("contrasenia")
@@ -22,7 +22,6 @@ def validar_usuario(datos):
     if not username or not contrasenia:
         abort(400, message="Faltan parámetros de entrada")
 
-    # Consulta para verificar si el usuario y la contraseña son válidos
     usuario = Usuario.query.filter_by(Username=username, Contrasenia=contrasenia).first()
 
     if usuario:
@@ -64,15 +63,23 @@ class UsuarioResource(MethodView):
     @blp.arguments(UsuarioSchema)
     @blp.response(200, UsuarioSchema)
     def put(self, data, id_User):
+        # Verificar que el usuario existe
         usuario = Usuario.query.get(id_User)
         if usuario is None:
             abort(404, message="Usuario no encontrado")
-        
-        usuario.Nombre = data['Nombre']
-        usuario.Apellido = data['Apellido']
-        usuario.Cedula = data['Cedula']
-        usuario.Telefono = data['Telefono']
-        
+
+        # Verificar que los datos estén presentes correctamente en el cuerpo de la solicitud
+        try:
+            usuario.Username = data['Username']
+            usuario.Contrasenia = data['Contrasenia']
+            usuario.Nombre = data['Nombre']
+            usuario.Apellido = data['Apellido']
+            usuario.Cedula = data['Cedula']
+            usuario.Telefono = data['Telefono']
+        except KeyError as e:
+            abort(400, message=f"Falta el campo {e.args[0]} en la solicitud.")
+
+        # Guardar los cambios en la base de datos
         db.session.commit()
         return usuario
 
@@ -84,3 +91,4 @@ class UsuarioResource(MethodView):
         db.session.delete(usuario)
         db.session.commit()
         return '', 204
+
