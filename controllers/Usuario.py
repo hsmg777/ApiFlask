@@ -63,7 +63,6 @@ class UsuarioResource(MethodView):
     @blp.arguments(UsuarioSchema)
     @blp.response(200, UsuarioSchema)
     def put(self, data, id_User):
-        # Verificar que el usuario existe
         usuario = Usuario.query.get(id_User)
         if usuario is None:
             abort(404, message="Usuario no encontrado")
