@@ -8,3 +8,4 @@ class UsuarioSchema(Schema):
     Apellido = fields.Str(required=True)
     Cedula = fields.Int(required=True)
     Telefono = fields.Str(required=True)
+    isAdmin = fields.Str(required=True)

@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_smorest import Api
-from flask_cors import CORS  # Importar Flask-CORS
+from flask_cors import CORS
 from controllers.Usuario import blp as UserBluePrint
 from db import init_db, db
 import urllib.parse
@@ -8,7 +8,7 @@ import urllib.parse
 def createApp():
     app = Flask(__name__)
     
-    # Configuración general
+    # Configuración general de la API
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["API_TITLE"] = "IngWebAPI"
     app.config["API_VERSION"] = "v1"
@@ -34,14 +34,14 @@ def createApp():
     # Inicializa la base de datos con la aplicación
     init_db(app)
     
-    # Configurar CORS
-    CORS(app, resources={r"/api/*": {"origins": "https://preact-mauve.vercel.app/"}})
-    
+    # Configuración de CORS
+    # Puedes restringir el origen en producción si lo deseas
+    CORS(app, resources={r"/api/*": {"origins": "https://preact-mauve.vercel.app"}})
+
+
+    # Inicialización de la API y registro del blueprint
     api = Api(app)
-    
-    # Registro de blueprints
     api.register_blueprint(UserBluePrint)
-    
     
     return app
 
