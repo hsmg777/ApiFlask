@@ -1,9 +1,9 @@
+import os
 from flask import Flask
 from flask_smorest import Api
 from flask_cors import CORS  # Importar Flask-CORS
 from controllers.Usuario import blp as UserBluePrint
 from db import init_db, db
-import urllib.parse
 
 def createApp():
     app = Flask(__name__)
@@ -17,18 +17,8 @@ def createApp():
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     
-    # Configuración de la base de datos
-    server = '(localdb)\\MSSQLLocalDB'
-    database = 'IngWeb'
-    username = 'aurora'
-    password = 'mamifer1'
-    driver = 'ODBC Driver 17 for SQL Server'
-    
-    params = urllib.parse.quote_plus(
-        f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
-    )
-    connection_string = f"mssql+pyodbc:///?odbc_connect={params}"
-    app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
+    # Configuración de la base de datos MySQL usando la variable de entorno `MYSQL_PUBLIC_URL`
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("MYSQL_PUBLIC_URL")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
     # Inicializa la base de datos con la aplicación
@@ -41,7 +31,6 @@ def createApp():
     
     # Registro de blueprints
     api.register_blueprint(UserBluePrint)
-    
     
     return app
 
