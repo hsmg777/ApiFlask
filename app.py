@@ -2,13 +2,20 @@ from flask import Flask
 from flask_smorest import Api
 from flask_cors import CORS
 from controllers.Usuario import blp as UserBluePrint
+from controllers.Plato import blp as PlatoBlueprint
+from controllers.Mesa import blp as MesaBlueprint
+from controllers.Orden import blp as OrdenBlueprint
+from controllers.RegistroHoras import blp as RegistroHorasBlueprint
+
+
+
 from db import init_db, db
 import urllib.parse
 
 def createApp():
     app = Flask(__name__)
     
-    # Configuración general de la API
+    # Configuración API
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["API_TITLE"] = "IngWebAPI"
     app.config["API_VERSION"] = "v1"
@@ -17,7 +24,7 @@ def createApp():
     app.config["OPENAPI_SWAGGER_UI_PATH"] = "/swagger-ui"
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     
-    # Configuración de la base de datos
+    # Configuración bd
     server = '(localdb)\\MSSQLLocalDB'
     database = 'IngWeb'
     username = 'aurora'
@@ -31,17 +38,25 @@ def createApp():
     app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # Inicializa la base de datos con la aplicación
+  
     init_db(app)
     
-    # Configuración de CORS
-    # Puedes restringir el origen en producción si lo deseas
+    # CORS
+
     CORS(app, resources={r"/api/*": {"origins": "https://preact-mauve.vercel.app"}})
 
 
-    # Inicialización de la API y registro del blueprint
+
+    # blueprints
     api = Api(app)
     api.register_blueprint(UserBluePrint)
+    api.register_blueprint(PlatoBlueprint)
+    api.register_blueprint(MesaBlueprint)
+    api.register_blueprint(OrdenBlueprint)
+    api.register_blueprint(RegistroHorasBlueprint)
+
+
+
     
     return app
 
