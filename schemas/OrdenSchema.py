@@ -7,3 +7,4 @@ class OrdenSchema(Schema):
     fecha = fields.Date(dump_only=True)
     cantidad = fields.Int(required=True)
     observacion = fields.Str()
+    estado = fields.Str(required=True)  

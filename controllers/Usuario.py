@@ -17,7 +17,6 @@ usuarios_schema = UsuarioSchema(many=True)
 @blp.arguments(LoginSchema)
 def validar_usuario(datos):
     try:
-        print("Datos recibidos:", datos)  # Para depuración
         username = datos.get("username")
         contrasenia = datos.get("contrasenia")
 
@@ -28,7 +27,7 @@ def validar_usuario(datos):
 
         if usuario:
             print("Usuario encontrado:", usuario.Username)
-            return jsonify({"valid": True, "isAdmin": usuario.isAdmin}), 200
+            return jsonify({"valid": True, "isAdmin": usuario.isAdmin, "id_User": usuario.id_User}), 200
         else:
             print("Usuario no encontrado")
             return jsonify({"valid": False}), 401

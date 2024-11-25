@@ -5,6 +5,8 @@ class Mesa(db.Model):
     
     id_mesa = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(50), nullable=False)
+    passw = db.Column(db.String(50), nullable=False)
 
-    def __init__(self, nombre):
+    def __init__(self, nombre, passw):
         self.nombre = nombre
+        self.passw = passw
