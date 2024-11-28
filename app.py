@@ -22,14 +22,14 @@ def createApp():
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
     
     # Configuración de la base de datos
-    server = '(localdb)\\MSSQLLocalDB'
+    server = 'tcp:ingwebserver.database.windows.net,1433'
     database = 'IngWeb'
     username = 'aurora'
-    password = 'mamifer1'
+    password = 'Mamifer_1'  # Reemplaza con la contraseña real
     driver = 'ODBC Driver 17 for SQL Server'
     
     params = urllib.parse.quote_plus(
-        f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password}"
+        f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
     )
     connection_string = f"mssql+pyodbc:///?odbc_connect={params}"
     app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
@@ -39,7 +39,7 @@ def createApp():
     init_db(app)
     
     # Configurar CORS
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    CORS(app)
     
     api = Api(app)
     
@@ -49,7 +49,6 @@ def createApp():
     api.register_blueprint(PlatoBlue)
     api.register_blueprint(UsuarioBlue)
     api.register_blueprint(MesaBlue)
-    
     
     return app
 
