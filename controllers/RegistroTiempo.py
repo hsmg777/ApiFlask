@@ -3,13 +3,18 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from models.RegistroTiempo import RegistroTiempo
 from models.Usuario import Usuario
+from models.Orden import Orden
 from models.Plato import Plato
 from db import db
 from schemas.RegistroTiempoSchema import RegistroTiempoSchema
+from schemas.FechaRangoSchema import FechaRangoSchema
+from schemas.PlatosChefSchema import PlatosChefSchema
 from datetime import datetime, timedelta
 
 blp = Blueprint("RegistroTiempo", __name__, url_prefix="/api/registrotiempo", description="CRUD Registro de Tiempo")
 
+FechaRangoSchema = FechaRangoSchema()
+PlatosChefSchema = PlatosChefSchema()
 registro_tiempo_schema = RegistroTiempoSchema()
 registros_tiempo_schema = RegistroTiempoSchema(many=True)
 
@@ -159,3 +164,83 @@ class RegistroTiempoResource(MethodView):
         db.session.commit()
         print("Registro de tiempo eliminado con éxito:", id_registroTiempo)
         return '', 204
+
+#CHEF MAS TOP POR FECHAS
+@blp.route('/chefmastop', methods=['POST'])
+class ChefMasRapido(MethodView):
+    @blp.arguments(FechaRangoSchema)
+    def post(self, data):
+        """Obtener el chef más rápido dentro de un rango de fechas"""
+        try:
+            fecha_inicio = data['fecha_inicio']
+            fecha_fin = data['fecha_fin']
+
+            # Query para obtener el chef más rápido
+            resultado = db.session.query(
+                RegistroTiempo.id_User.label('ChefID'),
+                (Usuario.Nombre + ' ' + Usuario.Apellido).label('ChefNombre'),
+                db.func.avg(db.func.datediff(db.text('SECOND'), RegistroTiempo.tiempoInicio, RegistroTiempo.tiempoFin)).label('TiempoPromedioSegundos')
+            ).join(Usuario, RegistroTiempo.id_User == Usuario.id_User)\
+             .join(Plato, RegistroTiempo.id_plato == Plato.id_plato)\
+             .join(Orden, Plato.id_plato == Orden.id_plato)\
+             .filter(Orden.fecha.between(fecha_inicio, fecha_fin))\
+             .group_by(RegistroTiempo.id_User, Usuario.Nombre, Usuario.Apellido)\
+             .order_by(db.text('TiempoPromedioSegundos ASC'))\
+             .first()
+
+            if not resultado:
+                return jsonify({"message": "No se encontraron chefs en el rango de fechas especificado"}), 404
+
+            chef_dict = {
+                "ChefID": resultado.ChefID,
+                "ChefNombre": resultado.ChefNombre,
+                "TiempoPromedioSegundos": resultado.TiempoPromedioSegundos
+            }
+            return jsonify(chef_dict)
+
+        except Exception as e:
+            print(f"Error al obtener el chef más rápido: {e}")
+            abort(500, message="Error al obtener el chef más rápido")
+
+#3platos mas rapidos del chef
+@blp.route('/platoschef', methods=['POST'])
+class PlatosChef(MethodView):
+    @blp.arguments(PlatosChefSchema)
+    def post(self, data):
+        """Obtener los platos con menor tiempo de un chef específico dentro de un rango de fechas"""
+        try:
+            id_chef = data['idChef']
+            fecha_inicio = data['fecha_inicio']
+            fecha_fin = data['fecha_fin']
+
+            # Query para obtener los platos del chef
+            resultado = db.session.query(
+                RegistroTiempo.id_plato,
+                Plato.nombre.label('PlatoNombre'),
+                db.func.min(RegistroTiempo.tiempoTotal).label('TiempoMinimo')
+            ).join(Plato, RegistroTiempo.id_plato == Plato.id_plato)\
+             .filter(RegistroTiempo.id_User == id_chef)\
+             .filter(RegistroTiempo.fecha.between(fecha_inicio, fecha_fin))\
+             .group_by(RegistroTiempo.id_plato, Plato.nombre)\
+             .order_by(db.text('TiempoMinimo ASC'))\
+             .all()
+
+            # Verificar si se encontraron resultados
+            if not resultado:
+                return jsonify({"message": "No se encontraron platos para el chef especificado en el rango de fechas"}), 404
+
+            # Convertir los resultados a formato JSON
+            platos_dict = [
+                {
+                    "id_plato": plato.id_plato,
+                    "PlatoNombre": plato.PlatoNombre,
+                    "TiempoMinimo": plato.TiempoMinimo
+                }
+                for plato in resultado
+            ]
+
+            return jsonify(platos_dict)
+
+        except Exception as e:
+            print(f"Error al obtener los platos del chef: {e}")
+            abort(500, message="Error al obtener los platos del chef")
