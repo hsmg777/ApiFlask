@@ -9,8 +9,7 @@ from controllers.Mesa import blp as MesaBlue
 from controllers.RegistroTiempo import blp as TiempoBlue
 import urllib.parse
 
-
-def createApp():
+def create_app():  # Renombré la función para usar snake_case (convención de Python)
     app = Flask(__name__)
 
     # Configuración general
@@ -52,7 +51,8 @@ def createApp():
 
     return app
 
+# Asegúrate de que la variable `app` sea global y esté definida correctamente
+app = create_app()
 
 if __name__ == '__main__':
-    app = createApp()
     app.run(host='0.0.0.0', port=5000, debug=True)
