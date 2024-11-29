@@ -213,28 +213,28 @@ class PlatosChef(MethodView):
             fecha_inicio = data['fecha_inicio']
             fecha_fin = data['fecha_fin']
 
-            # Query para obtener los platos del chef
+            # Query 
             resultado = db.session.query(
                 RegistroTiempo.id_plato,
                 Plato.nombre.label('PlatoNombre'),
                 db.func.min(RegistroTiempo.tiempoTotal).label('TiempoMinimo')
-            ).join(Plato, RegistroTiempo.id_plato == Plato.id_plato)\
-             .filter(RegistroTiempo.id_User == id_chef)\
-             .filter(RegistroTiempo.fecha.between(fecha_inicio, fecha_fin))\
-             .group_by(RegistroTiempo.id_plato, Plato.nombre)\
-             .order_by(db.text('TiempoMinimo ASC'))\
+            ).join(Plato, RegistroTiempo.id_plato == Plato.id_plato) \
+             .filter(RegistroTiempo.id_User == id_chef) \
+             .filter(RegistroTiempo.fecha.between(fecha_inicio, fecha_fin)) \
+             .group_by(RegistroTiempo.id_plato, Plato.nombre) \
+             .order_by(db.func.min(RegistroTiempo.tiempoTotal).asc()) \
              .all()
 
             # Verificar si se encontraron resultados
             if not resultado:
                 return jsonify({"message": "No se encontraron platos para el chef especificado en el rango de fechas"}), 404
 
-            # Convertir los resultados a formato JSON
+            # JSON
             platos_dict = [
                 {
                     "id_plato": plato.id_plato,
                     "PlatoNombre": plato.PlatoNombre,
-                    "TiempoMinimo": plato.TiempoMinimo
+                    "TiempoMinimo": str(plato.TiempoMinimo)  
                 }
                 for plato in resultado
             ]
