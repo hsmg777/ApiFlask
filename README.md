@@ -1,6 +1,6 @@
 CORE Restaurante (React + Flask + Ngrok)
 
-Este proyceto "MVC Restaurante" fue desadesarrollado de la siguiente manera:
+Esta API forma parte del proyceto "MVC Restaurante" que fue desadesarrollado de la siguiente manera:
 FRONT END -> REACT
 API MVC -> FLASK
 BASE DE DATOS -> SQL SERVER MANAGMENT
@@ -11,31 +11,30 @@ el cual se conecta con el link de ngrok "https://1b0a-181-198-15-238.ngrok-free.
 
 ESTA aplicación fue diseñada para ayudar a una mejor gestión de el pedido de platos de un menú de un restaurante asi como mejorar la experiencia del usuario al ir a un restaurante.
  
-POR EL MOMENTO LA APP esta en desarrollo tiene en funcionamiento la parte de el ADMINISTRADOR Y TODO LO QUE EL PUEDE REALIZAR (Gestionar usuarios, Gestionar Mesas, Historial de ordenes, Historial de horas laboradas por los empleados y gestión de platos del menú)
+La api tiene como funcionamiento el crud de TODAS las tablas de la base de datos(Gestionar usuarios, Gestionar Mesas, Historial de ordenes, Historial de tiempo que los empleados se demoran al realizar una orden y gestión de platos del menú)
+a su vez existen endpoints que realizan pediciones mediante QUERYS  a la base de datos para obtener la informacion necesaria para poder mostrarla
 
 Para su funcionamiento tendrás que: 
  En el código de la API:
- - verificar la conexión con la base de datos de SQL 
+ - verificar la conexión con la base de datos de SQL si es localmente o en azure si la tienes en azure 
  - verificar que tengas todas las instalaciones necesarias para Flask, etc
- EN SQL:
+ EN SQL o Azure:
 	 CREAR UNA BD CON EL NOMBRE: "INGWEB"
-	CREAR TABLAS DE ("Mesa", "Orden", "Plato", "registroHoras", 	"Usuario")
+	CREAR TABLAS DE ("Mesa", "Orden", "Plato", "registroTiempo", "Usuario")
  
 /* OJO TIENES QUE CORRER LA API LOCALMENTE PRIMERO CON Python app.py*/
 luego en un cmd correr el comando (ngrok http 50000)
-el link que te da ngrok lo usaras en el frontend
- EN REACT:
-	- verificar el link de ngrok
-	y la despliegas en vercel nuevamente 
+el link que te da ngrok lo usaras en el frontend 
+
+con estas indicaciones el proyecto esta listo para usarse.
 
 
-con estas indicaciones el proyecto esta listo para usarse
+
  link de api: 
  https://github.com/hsmg777/ApiFlask
  link de react: 
  https://github.com/hsmg777/preact
  
-
 contacto:
 hayland.montalvo@udla.edu.ec
 
