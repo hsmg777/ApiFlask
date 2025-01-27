@@ -244,3 +244,100 @@ class PlatosChef(MethodView):
         except Exception as e:
             print(f"Error al obtener los platos del chef: {e}")
             abort(500, message="Error al obtener los platos del chef")
+
+
+#Ordenes mas lentos 
+@blp.route('/ordeneslentas', methods=['POST'])
+class OrdenesLentas(MethodView):
+    @blp.arguments(FechaRangoSchema)
+    def post(self, data):
+        """Obtener las órdenes con mayor tiempo (más lentas) dentro de un rango de fechas"""
+        try:
+            fecha_inicio = data['fecha_inicio']
+            fecha_fin = data['fecha_fin']
+
+            # Validar fechas
+            if not fecha_inicio or not fecha_fin:
+                abort(400, message="Se requieren los campos 'fecha_inicio' y 'fecha_fin'")
+            if fecha_inicio > fecha_fin:
+                abort(400, message="La fecha de inicio no puede ser posterior a la fecha de fin")
+
+            # Query
+            resultado = db.session.query(
+                Orden.id_orden,
+                Orden.id_plato,
+                Orden.fecha.label("FechaOrden"),
+                Orden.cantidad,
+                Orden.observacion,
+                Orden.estado,
+                db.func.max(RegistroTiempo.tiempoTotal).label("TiempoMaximo")
+            ).join(RegistroTiempo, Orden.id_plato == RegistroTiempo.id_plato) \
+             .filter(RegistroTiempo.fecha.between(fecha_inicio, fecha_fin)) \
+             .filter(RegistroTiempo.tiempoTotal.isnot(None)) \
+             .group_by(
+                 Orden.id_orden,
+                 Orden.id_plato,
+                 Orden.fecha,
+                 Orden.cantidad,
+                 Orden.observacion,
+                 Orden.estado
+             ) \
+             .order_by(db.func.max(RegistroTiempo.tiempoTotal).desc()) \
+             .all()
+
+            
+            if not resultado:
+                return jsonify({"message": f"No se encontraron órdenes en el rango de fechas especificado ({fecha_inicio} - {fecha_fin})"}), 404
+
+            
+            ordenes_dict = [
+                {
+                    "id_orden": orden.id_orden,
+                    "id_plato": orden.id_plato,
+                    "FechaOrden": orden.FechaOrden.strftime('%Y-%m-%d') if orden.FechaOrden else None,
+                    "cantidad": orden.cantidad,
+                    "observacion": orden.observacion,
+                    "estado": orden.estado,
+                    "TiempoMaximo": str(orden.TiempoMaximo) if orden.TiempoMaximo else None  
+                }
+                for orden in resultado
+            ]
+
+            return jsonify(ordenes_dict)
+
+        except Exception as e:
+            print(f"Error al obtener las órdenes más lentas: {e}")
+            abort(500, message="Error al obtener las órdenes más lentas")
+
+
+@blp.route('/tiempopromedio', methods=['GET'])
+class TiempoPromedioPlatos(MethodView):
+    def get(self):
+        """Obtener el tiempo promedio de preparación por plato"""
+        try:
+            # Query
+            resultado = db.session.query(
+                RegistroTiempo.id_plato,
+                db.func.avg(db.func.datediff(db.text('SECOND'), '00:00:00', RegistroTiempo.tiempoTotal)).label("TiempoPromedioSegundos")
+            ).group_by(RegistroTiempo.id_plato) \
+             .order_by(RegistroTiempo.id_plato) \
+             .all()
+
+            if not resultado:
+                return jsonify({"message": "No se encontraron registros de tiempo en la base de datos"}), 404
+
+            
+            platos_promedio_dict = [
+                {
+                    "id_plato": plato.id_plato,
+                    "TiempoPromedioSegundos": round(plato.TiempoPromedioSegundos, 2)  
+                }
+                for plato in resultado
+            ]
+
+            return jsonify(platos_promedio_dict)
+
+        except Exception as e:
+            print(f"Error al obtener el tiempo promedio por plato: {e}")
+            abort(500, message="Error al obtener el tiempo promedio por plato")
+
