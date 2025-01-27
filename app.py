@@ -22,18 +22,20 @@ def create_app():  # Renombré la función para usar snake_case (convención de 
     app.config["OPENAPI_SWAGGER_UI_URL"] = "https://cdn.jsdelivr.net/npm/swagger-ui-dist/"
 
     # Configuración de la base de datos
-    server = 'tcp:ingwebserver.database.windows.net,1433'
-    database = 'IngWeb'
-    username = 'aurora'
+    # Configuración de la base de datos local
+    server = '(localdb)\\MSSQLLocalDB'  # Servidor local
+    database = 'IngWeb'  # Nombre de tu base de datos
+    username = 'sebas'  # Nombre del usuario que creaste
     password = 'Mamifer_1'  # Reemplaza con la contraseña real
     driver = 'ODBC Driver 17 for SQL Server'
 
     params = urllib.parse.quote_plus(
-        f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;"
+        f"DRIVER={{{driver}}};SERVER={server};DATABASE={database};UID={username};PWD={password};Encrypt=no;TrustServerCertificate=yes;Connection Timeout=30;"
     )
     connection_string = f"mssql+pyodbc:///?odbc_connect={params}"
     app.config['SQLALCHEMY_DATABASE_URI'] = connection_string
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
     # Inicialización de la base de datos
     init_db(app)
