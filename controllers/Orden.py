@@ -1,4 +1,6 @@
-from flask import request, jsonify
+# controllers/Orden.py
+
+from flask import request, jsonify, current_app
 from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 from models.Orden import Orden
@@ -21,15 +23,15 @@ class OrdenList(MethodView):
             resultados = Orden.query.all()
             ordenes = [
                 {
-                    "id_orden": resultado.id_orden,
-                    "id_plato": resultado.id_plato,
-                    "id_mesa": resultado.id_mesa,
-                    "cantidad": resultado.cantidad,
-                    "observacion": resultado.observacion,
-                    "estado": resultado.estado,
-                    "fecha": resultado.fecha.strftime('%Y-%m-%d') if resultado.fecha else None
+                    "id_orden": o.id_orden,
+                    "id_plato": o.id_plato,
+                    "id_mesa": o.id_mesa,
+                    "cantidad": o.cantidad,
+                    "observacion": o.observacion,
+                    "estado": o.estado,
+                    "fecha": o.fecha.strftime('%Y-%m-%d') if o.fecha else None
                 }
-                for resultado in resultados
+                for o in resultados
             ]
             return jsonify(ordenes), 200
         except Exception as e:
@@ -50,15 +52,38 @@ class OrdenList(MethodView):
             )
             db.session.add(nueva_orden)
             db.session.commit()
+
             print("Orden creada con éxito:", nueva_orden.id_orden)
+
+            # --------------------------------
+            # 1) Recuperar el subject del app
+            # --------------------------------
+            subject = current_app.config.get("ORDER_SUBJECT")
+            if subject:
+                # ----------------------------------------
+                # 2) Notificar a todos los observadores
+                # ----------------------------------------
+                # Obtener información adicional como el nombre del plato
+                plato = Plato.query.get(nueva_orden.id_plato)
+                mesa = Mesa.query.get(nueva_orden.id_mesa)
+                order_info = {
+                    "id_orden": nueva_orden.id_orden,
+                    "id_plato": nueva_orden.id_plato,
+                    "Plato": plato.nombre if plato else "Desconocido",
+                    "id_mesa": nueva_orden.id_mesa,
+                    "Mesa": mesa.nombre if mesa else "Desconocida",
+                    "cantidad": nueva_orden.cantidad,
+                    "estado": nueva_orden.estado
+                }
+                subject.notify(order_info)
+
             return nueva_orden
         except Exception as e:
             print(f"Error al crear orden: {e}")
             abort(500, message="Error al crear orden")
-
+            
 @blp.route('/detalles')
 class OrdenDetalles(MethodView):
-
     def get(self):
         """Obtener detalles de órdenes con Mesa y Plato"""
         try:
@@ -75,16 +100,16 @@ class OrdenDetalles(MethodView):
 
             detalles_ordenes = [
                 {
-                    "id_orden": resultado.id_orden,
-                    "id_mesa" : resultado.id_mesa,
-                    "Mesa": resultado.Mesa,
-                    "Plato": resultado.Plato,
-                    "Cantidad": resultado.cantidad,
-                    "Observacion": resultado.observacion,
-                    "Estado": resultado.estado,
-                    "Fecha": resultado.fecha
+                    "id_orden": r.id_orden,
+                    "id_mesa" : r.id_mesa,
+                    "Mesa": r.Mesa,
+                    "Plato": r.Plato,
+                    "Cantidad": r.cantidad,
+                    "Observacion": r.observacion,
+                    "Estado": r.estado,
+                    "Fecha": r.fecha
                 }
-                for resultado in resultados
+                for r in resultados
             ]
             return jsonify(detalles_ordenes), 200
         except Exception as e:
@@ -93,7 +118,6 @@ class OrdenDetalles(MethodView):
 
 @blp.route('/<int:id_orden>')
 class OrdenResource(MethodView):
-
 
     @blp.response(200, OrdenSchema)
     def get(self, id_orden):

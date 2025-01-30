@@ -1,4 +1,56 @@
+# Archivos de Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Entornos virtuales
+venv/
 env/
-.flaskenv
+.venv/
+.env/
+
+# Archivos de configuración de entorno
+.env
+.venv/
+instance/
+config.py
+
+# Archivos de distribución / empaquetado
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs y bases de datos
+*.log
+*.sqlite3
+
+# Archivos de sistema operativo
+.DS_Store
+Thumbs.db
+
+# Directorios de editores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# Archivos temporales
+*.tmp
+*.temp
+*.bak
+
+# Otros archivos
+*.lock
